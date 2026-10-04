@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     const openRouterResponse = await fetch("https://openrouter.ai", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Authorization": `Bearer ${process.env.VITE_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
         "HTTP-Referer": "https://vercel.app"
       },
@@ -26,6 +26,11 @@ export default async function handler(req, res) {
     });
 
     const data = await openRouterResponse.json();
+    
+    if (!data.choices || data.choices.length === 0) {
+      return res.status(500).json({ reply: "Engine configuration error. Check OpenRouter logs." });
+    }
+
     const timiReply = data.choices[0].message.content;
     return res.status(200).json({ reply: timiReply });
 
@@ -33,3 +38,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ reply: "Engine connection timeout. Try again." });
   }
 }
+
